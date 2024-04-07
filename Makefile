@@ -1,2 +1,5 @@
 lint:
 	golangci-lint --exclude-use-default=false --out-format tab run ./...
+
+dockerbuild:
+	docker build -t 96solutions/neurography:latest .
