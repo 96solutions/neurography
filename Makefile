@@ -6,3 +6,6 @@ dockerbuild:
 
 gogen:
 	go generate ./...
+
+test:
+	make gogen && go test ./...

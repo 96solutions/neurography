@@ -2,6 +2,7 @@ package services_test
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/96solutions/neurography/knowledgebase/commands/domain/models"
@@ -86,8 +87,8 @@ func TestKnowledgeItemService_NewItem_Success(t *testing.T) {
 	if item.Score != 0 {
 		t.Error("expected item.Score to be 0")
 	}
-	if item.LastScore != 0 {
-		t.Error("expected item.LastScore to be 0")
+	if item.LastMark != 0 {
+		t.Error("expected item.LastMark to be 0")
 	}
 	if item.LastCheckAt != nil {
 		t.Error("expected item.LastCheckAt to be nil")
@@ -261,17 +262,11 @@ func TestKnowledgeItemService_UpdateItem_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	item := &models.KnowledgeItem{
-		ID:          5,
-		Title:       "Test Item",
-		Anchor:      "Test Anchor",
-		Data:        "Test Data and Something more",
-		Categories:  nil,
-		Tags:        []string{"tag1", "tag2"},
-		Score:       0,
-		LastScore:   0,
-		LastCheckAt: nil,
-		CreatedAt:   nil,
-		UpdatedAt:   nil,
+		ID:     5,
+		Title:  "Test Item",
+		Anchor: "Test Anchor",
+		Data:   "Test Data and Something more",
+		Tags:   []string{"tag1", "tag2"},
 	}
 	expectedTitle := "expected title"
 	expectedAnchor := "expected anchor"
@@ -333,17 +328,11 @@ func TestKnowledgeItemService_UpdateItem_RepoError(t *testing.T) {
 	defer ctrl.Finish()
 
 	item := &models.KnowledgeItem{
-		ID:          5,
-		Title:       "Test Item",
-		Anchor:      "Test Anchor",
-		Data:        "Test Data and Something more",
-		Categories:  nil,
-		Tags:        []string{"tag1", "tag2"},
-		Score:       0,
-		LastScore:   0,
-		LastCheckAt: nil,
-		CreatedAt:   nil,
-		UpdatedAt:   nil,
+		ID:     5,
+		Title:  "Test Item",
+		Anchor: "Test Anchor",
+		Data:   "Test Data and Something more",
+		Tags:   []string{"tag1", "tag2"},
 	}
 	expectedTitle := "expected title"
 	expectedAnchor := "expected anchor"
@@ -375,16 +364,10 @@ func TestKnowledgeItemService_UpdateItem_ItemNotExists(t *testing.T) {
 	defer ctrl.Finish()
 
 	item := &models.KnowledgeItem{
-		Title:       "Test Item",
-		Anchor:      "Test Anchor",
-		Data:        "Test Data and Something more",
-		Categories:  nil,
-		Tags:        []string{"tag1", "tag2"},
-		Score:       0,
-		LastScore:   0,
-		LastCheckAt: nil,
-		CreatedAt:   nil,
-		UpdatedAt:   nil,
+		Title:  "Test Item",
+		Anchor: "Test Anchor",
+		Data:   "Test Data and Something more",
+		Tags:   []string{"tag1", "tag2"},
 	}
 	expectedTitle := "expected title"
 	expectedAnchor := "expected anchor"
@@ -415,16 +398,10 @@ func TestKnowledgeItemService_UpdateItem_ValidationError(t *testing.T) {
 	defer ctrl.Finish()
 
 	item := &models.KnowledgeItem{
-		Title:       "Test Item",
-		Anchor:      "Test Anchor",
-		Data:        "Test Data and Something more",
-		Categories:  nil,
-		Tags:        []string{"tag1", "tag2"},
-		Score:       0,
-		LastScore:   0,
-		LastCheckAt: nil,
-		CreatedAt:   nil,
-		UpdatedAt:   nil,
+		Title:  "Test Item",
+		Anchor: "Test Anchor",
+		Data:   "Test Data and Something more",
+		Tags:   []string{"tag1", "tag2"},
 	}
 
 	repo := mock.NewMockKnowledgeItemsRepo(ctrl)
@@ -529,17 +506,11 @@ func TestKnowledgeItemService_DeleteItem_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	item := &models.KnowledgeItem{
-		ID:          1,
-		Title:       "Test Item",
-		Anchor:      "Test Anchor",
-		Data:        "Test Data and Something more",
-		Categories:  nil,
-		Tags:        []string{"tag1", "tag2"},
-		Score:       0,
-		LastScore:   0,
-		LastCheckAt: nil,
-		CreatedAt:   nil,
-		UpdatedAt:   nil,
+		ID:     1,
+		Title:  "Test Item",
+		Anchor: "Test Anchor",
+		Data:   "Test Data and Something more",
+		Tags:   []string{"tag1", "tag2"},
 	}
 
 	repo := mock.NewMockKnowledgeItemsRepo(ctrl)
@@ -557,17 +528,11 @@ func TestKnowledgeItemService_DeleteItem_ItemNotExists(t *testing.T) {
 	defer ctrl.Finish()
 
 	item := &models.KnowledgeItem{
-		ID:          0,
-		Title:       "Test Item",
-		Anchor:      "Test Anchor",
-		Data:        "Test Data and Something more",
-		Categories:  nil,
-		Tags:        []string{"tag1", "tag2"},
-		Score:       0,
-		LastScore:   0,
-		LastCheckAt: nil,
-		CreatedAt:   nil,
-		UpdatedAt:   nil,
+		ID:     0,
+		Title:  "Test Item",
+		Anchor: "Test Anchor",
+		Data:   "Test Data and Something more",
+		Tags:   []string{"tag1", "tag2"},
 	}
 	expectedError := errors.New("provided Knowledge Item doesn't exist")
 
@@ -588,17 +553,11 @@ func TestKnowledgeItemService_DeleteItem_RepoError(t *testing.T) {
 	defer ctrl.Finish()
 
 	item := &models.KnowledgeItem{
-		ID:          1,
-		Title:       "Test Item",
-		Anchor:      "Test Anchor",
-		Data:        "Test Data and Something more",
-		Categories:  nil,
-		Tags:        []string{"tag1", "tag2"},
-		Score:       0,
-		LastScore:   0,
-		LastCheckAt: nil,
-		CreatedAt:   nil,
-		UpdatedAt:   nil,
+		ID:     1,
+		Title:  "Test Item",
+		Anchor: "Test Anchor",
+		Data:   "Test Data and Something more",
+		Tags:   []string{"tag1", "tag2"},
 	}
 	expectedError := errors.New("expected error")
 
@@ -612,5 +571,176 @@ func TestKnowledgeItemService_DeleteItem_RepoError(t *testing.T) {
 	}
 	if err.Error() != expectedError.Error() {
 		t.Fatalf("expected error: %s, got: %s", expectedError.Error(), err.Error())
+	}
+}
+
+func TestKnowledgeItemService_SetLatestMark(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	item := &models.KnowledgeItem{
+		ID:     0,
+		Title:  "Test Item",
+		Anchor: "Test Anchor",
+		Data:   "Test Data and Something more",
+		Tags:   []string{"tag1", "tag2"},
+	}
+
+	repo := mock.NewMockKnowledgeItemsRepo(ctrl)
+	s := services.NewKnowledgeItemService(repo)
+
+	testCases := []struct {
+		name          string
+		item          *models.KnowledgeItem
+		itemID        int
+		mark          int
+		exScore       int
+		exMark        int
+		expectedMark  int
+		expectedScore int
+		expectedError error
+	}{
+		{
+			name:          "item doesn't exist",
+			item:          item,
+			itemID:        0,
+			mark:          1,
+			exScore:       0,
+			exMark:        0,
+			expectedMark:  0,
+			expectedScore: 0,
+			expectedError: errors.New("provided Knowledge Item doesn't exist"),
+		},
+		{
+			name:          "mark less than min 0",
+			item:          item,
+			itemID:        1,
+			mark:          -1,
+			exScore:       0,
+			exMark:        0,
+			expectedMark:  0,
+			expectedScore: 0,
+			expectedError: fmt.Errorf("mark cannot be less than %d", 0),
+		},
+		{
+			name:          "mark is higher than max 10",
+			item:          item,
+			itemID:        1,
+			mark:          11,
+			exScore:       0,
+			exMark:        0,
+			expectedMark:  0,
+			expectedScore: 0,
+			expectedError: fmt.Errorf("mark cannot be more than %d", 10),
+		},
+		{
+			name:          "first mark",
+			item:          item,
+			itemID:        1,
+			mark:          6,
+			exScore:       0,
+			exMark:        0,
+			expectedMark:  6,
+			expectedScore: 6,
+			expectedError: nil,
+		},
+		{
+			name:          "mark higher than previous",
+			item:          item,
+			itemID:        1,
+			mark:          6,
+			exScore:       25,
+			exMark:        5,
+			expectedMark:  6,
+			expectedScore: 31,
+			expectedError: nil,
+		},
+		{
+			name:          "mark less than previous",
+			item:          item,
+			itemID:        1,
+			mark:          4,
+			exScore:       25,
+			exMark:        5,
+			expectedMark:  4,
+			expectedScore: 24,
+			expectedError: nil,
+		},
+		{
+			name:          "mark eq previous",
+			item:          item,
+			itemID:        1,
+			mark:          5,
+			exScore:       25,
+			exMark:        5,
+			expectedMark:  5,
+			expectedScore: 30,
+			expectedError: nil,
+		},
+		{
+			name:          "completely forgotten",
+			item:          item,
+			itemID:        1,
+			mark:          0,
+			exScore:       25,
+			exMark:        5,
+			expectedMark:  0,
+			expectedScore: 0,
+			expectedError: nil,
+		},
+		{
+			name:          "score >= 0",
+			item:          item,
+			itemID:        1,
+			mark:          1,
+			exScore:       1,
+			exMark:        4,
+			expectedMark:  1,
+			expectedScore: 0,
+			expectedError: nil,
+		},
+		{
+			name:          "score <= 100",
+			item:          item,
+			itemID:        1,
+			mark:          10,
+			exScore:       95,
+			exMark:        7,
+			expectedMark:  10,
+			expectedScore: 100,
+			expectedError: nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			tc.item.ID = tc.itemID
+			tc.item.Score = tc.exScore
+			tc.item.LastMark = tc.exMark
+
+			if tc.expectedError == nil {
+				repo.EXPECT().Update(tc.item).Return(nil)
+			}
+
+			err := s.SetLatestMark(tc.item, tc.mark)
+			// error expected
+			if tc.expectedError != nil {
+				if err.Error() != tc.expectedError.Error() {
+					t.Fatalf("expected error: %s, got: %s", tc.expectedError.Error(), err.Error())
+				}
+				return
+			}
+
+			// error not expected
+			if err != nil {
+				t.Fatal(err)
+			}
+			if tc.expectedScore != tc.item.Score {
+				t.Fatalf("expected score: %d, got: %d", tc.expectedScore, tc.item.Score)
+			}
+			if tc.expectedMark != tc.item.LastMark {
+				t.Fatalf("expected mark: %d, got: %d", tc.expectedMark, tc.item.LastMark)
+			}
+		})
 	}
 }

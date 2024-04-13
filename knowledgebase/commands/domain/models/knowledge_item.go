@@ -14,10 +14,11 @@ type KnowledgeItem struct {
 
 	Tags []string `json:"tags,omitempty"`
 
-	Score     int `json:"score"`
-	LastScore int `json:"last_score"`
+	Score int `json:"score"`
 
+	LastMark    int        `json:"last_mark"`
 	LastCheckAt *time.Time `json:"last_check_at"`
-	CreatedAt   *time.Time `json:"created_at"`
-	UpdatedAt   *time.Time `json:"updated_at"`
+
+	CreatedAt *time.Time `json:"created_at"`
+	UpdatedAt *time.Time `json:"updated_at"`
 }
