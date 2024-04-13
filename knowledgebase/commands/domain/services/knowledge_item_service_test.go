@@ -77,6 +77,21 @@ func TestKnowledgeItemService_NewItem_Success(t *testing.T) {
 	if item.ID != expectedItemID {
 		t.Errorf("expected item.ID: %+v, got item.ID: %+v", expectedItemID, item.ID)
 	}
+	if item.CreatedAt == nil {
+		t.Error("expected item.CreatedAt")
+	}
+	if item.UpdatedAt != nil {
+		t.Error("expected item.UpdatedAt to be nil")
+	}
+	if item.Score != 0 {
+		t.Error("expected item.Score to be 0")
+	}
+	if item.LastScore != 0 {
+		t.Error("expected item.LastScore to be 0")
+	}
+	if item.LastCheckAt != nil {
+		t.Error("expected item.LastCheckAt to be nil")
+	}
 }
 
 func TestKnowledgeItemService_NewItem_RepoCreateError(t *testing.T) {
@@ -307,6 +322,9 @@ func TestKnowledgeItemService_UpdateItem_Success(t *testing.T) {
 		}
 	} else {
 		t.Fatalf("expected number of Categorys: %v, got: %v", len(categories), len(result.Categories))
+	}
+	if result.UpdatedAt == nil {
+		t.Error("expected UpdatedAt to be set")
 	}
 }
 

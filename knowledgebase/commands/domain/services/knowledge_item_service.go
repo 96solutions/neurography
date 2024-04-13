@@ -78,6 +78,9 @@ func (s *KnowledgeItemService) UpdateItem(
 	item.Tags = tags
 	item.Categories = categories
 
+	updatedAt := time.Now()
+	item.UpdatedAt = &updatedAt
+
 	err = s.repo.Update(item)
 	if err != nil {
 		return nil, err
