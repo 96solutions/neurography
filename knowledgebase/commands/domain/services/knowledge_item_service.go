@@ -5,21 +5,29 @@ import (
 	"errors"
 	"time"
 
+	"github.com/96solutions/neurography/knowledgebase/commands/domain/contracts"
 	"github.com/96solutions/neurography/knowledgebase/commands/domain/models"
 )
 
+const minTitleLength = 3
+const minAnchorLength = 3
+const minDataLength = 15
+const minTagLength = 1
+
 // KnowledgeItemService is a scope of business rules & actions related to the Knowledge Item.
 type KnowledgeItemService struct {
-	//
+	repo contracts.KnowledgeItemsRepo
 }
 
 // NewKnowledgeItemService function makes new instance of KnowledgeItemService.
-func NewKnowledgeItemService() *KnowledgeItemService {
-	return &KnowledgeItemService{}
+func NewKnowledgeItemService(repo contracts.KnowledgeItemsRepo) *KnowledgeItemService {
+	return &KnowledgeItemService{
+		repo: repo,
+	}
 }
 
-// BuildNewItem function builds new models.KnowledgeItem instance.
-func (s *KnowledgeItemService) BuildNewItem(
+// NewItem function builds new models.KnowledgeItem instance.
+func (s *KnowledgeItemService) NewItem(
 	title, anchor, data string,
 	tags []string,
 	categories []*models.Category,
@@ -40,6 +48,11 @@ func (s *KnowledgeItemService) BuildNewItem(
 		CreatedAt:  &createdAt,
 	}
 
+	item.ID, err = s.repo.Create(item)
+	if err != nil {
+		return nil, err
+	}
+
 	return item, nil
 }
 
@@ -49,14 +62,14 @@ func (s *KnowledgeItemService) UpdateItem(
 	title, anchor, data string,
 	tags []string,
 	categories []*models.Category,
-) error {
+) (*models.KnowledgeItem, error) {
 	err := s.validate(title, anchor, data, tags, categories)
 	if err != nil {
-		return err //TODO:
+		return nil, err //TODO:
 	}
 
 	if item.ID == 0 {
-		return errors.New("provided Knowledge Item doesn't exist")
+		return nil, errors.New("provided Knowledge Item doesn't exist")
 	}
 
 	item.Title = title
@@ -65,7 +78,21 @@ func (s *KnowledgeItemService) UpdateItem(
 	item.Tags = tags
 	item.Categories = categories
 
-	return nil
+	err = s.repo.Update(item)
+	if err != nil {
+		return nil, err
+	}
+
+	return item, nil
+}
+
+// DeleteItem function deletes existing models.KnowledgeItem.
+func (s *KnowledgeItemService) DeleteItem(item *models.KnowledgeItem) error {
+	if item.ID == 0 {
+		return errors.New("provided Knowledge Item doesn't exist")
+	}
+
+	return s.repo.Delete(item)
 }
 
 func (s *KnowledgeItemService) validate(
@@ -73,21 +100,21 @@ func (s *KnowledgeItemService) validate(
 	tags []string,
 	categories []*models.Category,
 ) error {
-	if title == "" {
-		return errors.New("title cannot be empty")
+	if len(title) <= minTitleLength {
+		return errors.New("title is too short")
 	}
 
-	if anchor == "" {
-		return errors.New("anchor cannot be empty")
+	if len(anchor) <= minAnchorLength {
+		return errors.New("anchor is too short")
 	}
 
-	if data == "" {
-		return errors.New("data cannot be empty")
+	if len(data) <= minDataLength {
+		return errors.New("data is too short")
 	}
 
 	for _, tag := range tags {
-		if tag == "" {
-			return errors.New("tag cannot be empty")
+		if len(tag) <= minTagLength {
+			return errors.New("tag is too short")
 		}
 	}
 

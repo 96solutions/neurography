@@ -3,3 +3,6 @@ lint:
 
 dockerbuild:
 	docker build -t 96solutions/neurography:latest .
+
+gogen:
+	go generate ./...
