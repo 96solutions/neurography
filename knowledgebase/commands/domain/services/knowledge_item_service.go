@@ -19,6 +19,8 @@ const maxScore = 100
 const minMark = 0
 const maxMark = 10
 
+//go:generate mockgen -package=mock -destination=../../mock/mock_knowledge_item_service.go -source=knowledge_item_service.go KnowledgeItemService
+
 // KnowledgeItemService interface represents a service that performs actions related to the models.KnowledgeItem.
 type KnowledgeItemService interface {
 	NewItem(

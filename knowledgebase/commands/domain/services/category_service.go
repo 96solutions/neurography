@@ -10,6 +10,8 @@ import (
 
 const minCategoryNameLength = 1
 
+//go:generate mockgen -package=mock -destination=../../mock/mock_category_service.go -source=category_service.go CategoryService
+
 // CategoryService represents a service that provides functionality related to the models.Category.
 type CategoryService interface {
 	CreateOrGetCategory(name string) (*models.Category, error)
