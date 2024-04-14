@@ -1,5 +1,5 @@
-// Package contracts contains list of interfaces required for domain services.
-package contracts
+// Package repositories contains list of interfaces required for domain services to provide them with data.
+package repositories
 
 import "github.com/96solutions/neurography/knowledgebase/commands/domain/models"
 

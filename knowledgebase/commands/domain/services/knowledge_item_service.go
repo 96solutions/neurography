@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/96solutions/neurography/knowledgebase/commands/domain/contracts"
 	"github.com/96solutions/neurography/knowledgebase/commands/domain/models"
+	"github.com/96solutions/neurography/knowledgebase/commands/domain/repositories"
 )
 
 const minTitleLength = 3
@@ -19,20 +19,40 @@ const maxScore = 100
 const minMark = 0
 const maxMark = 10
 
-// KnowledgeItemService is a scope of business rules & actions related to the Knowledge Item.
-type KnowledgeItemService struct {
-	repo contracts.KnowledgeItemsRepo
+// KnowledgeItemService interface represents a service that performs actions related to the models.KnowledgeItem.
+type KnowledgeItemService interface {
+	NewItem(
+		title, anchor, data string,
+		tags []string,
+		categories []*models.Category,
+	) (*models.KnowledgeItem, error)
+
+	UpdateItem(
+		item *models.KnowledgeItem,
+		title, anchor, data string,
+		tags []string,
+		categories []*models.Category,
+	) (*models.KnowledgeItem, error)
+
+	DeleteItem(item *models.KnowledgeItem) error
+
+	SetLatestMark(item *models.KnowledgeItem, mark int) error
+}
+
+// knowledgeItemService is a scope of business rules & actions related to the Knowledge Item.
+type knowledgeItemService struct {
+	repo repositories.KnowledgeItemsRepo
 }
 
 // NewKnowledgeItemService function makes new instance of KnowledgeItemService.
-func NewKnowledgeItemService(repo contracts.KnowledgeItemsRepo) *KnowledgeItemService {
-	return &KnowledgeItemService{
+func NewKnowledgeItemService(repo repositories.KnowledgeItemsRepo) KnowledgeItemService {
+	return &knowledgeItemService{
 		repo: repo,
 	}
 }
 
 // NewItem function builds new models.KnowledgeItem instance.
-func (s *KnowledgeItemService) NewItem(
+func (s *knowledgeItemService) NewItem(
 	title, anchor, data string,
 	tags []string,
 	categories []*models.Category,
@@ -62,7 +82,7 @@ func (s *KnowledgeItemService) NewItem(
 }
 
 // UpdateItem function updates existing models.KnowledgeItem instance.
-func (s *KnowledgeItemService) UpdateItem(
+func (s *knowledgeItemService) UpdateItem(
 	item *models.KnowledgeItem,
 	title, anchor, data string,
 	tags []string,
@@ -95,7 +115,7 @@ func (s *KnowledgeItemService) UpdateItem(
 }
 
 // DeleteItem function deletes existing models.KnowledgeItem.
-func (s *KnowledgeItemService) DeleteItem(item *models.KnowledgeItem) error {
+func (s *knowledgeItemService) DeleteItem(item *models.KnowledgeItem) error {
 	if item.ID == 0 {
 		return errors.New("provided Knowledge Item doesn't exist")
 	}
@@ -103,7 +123,7 @@ func (s *KnowledgeItemService) DeleteItem(item *models.KnowledgeItem) error {
 	return s.repo.Delete(item)
 }
 
-func (s *KnowledgeItemService) validate(
+func (s *knowledgeItemService) validate(
 	title, anchor, data string,
 	tags []string,
 	categories []*models.Category,
@@ -140,7 +160,7 @@ func (s *KnowledgeItemService) validate(
 	return nil
 }
 
-func (s *KnowledgeItemService) validateMark(mark int) error {
+func (s *knowledgeItemService) validateMark(mark int) error {
 	if mark < minMark {
 		return fmt.Errorf("mark cannot be less than %d", minMark)
 	}
@@ -152,7 +172,7 @@ func (s *KnowledgeItemService) validateMark(mark int) error {
 }
 
 // SetLatestMark sets last testing result to the knowledge item and updates score.
-func (s *KnowledgeItemService) SetLatestMark(item *models.KnowledgeItem, mark int) error {
+func (s *knowledgeItemService) SetLatestMark(item *models.KnowledgeItem, mark int) error {
 	if item.ID == 0 {
 		return errors.New("provided Knowledge Item doesn't exist")
 	}

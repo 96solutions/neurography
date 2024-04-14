@@ -4,26 +4,32 @@ package services
 import (
 	"errors"
 
-	"github.com/96solutions/neurography/knowledgebase/commands/domain/contracts"
 	"github.com/96solutions/neurography/knowledgebase/commands/domain/models"
+	"github.com/96solutions/neurography/knowledgebase/commands/domain/repositories"
 )
 
 const minCategoryNameLength = 1
 
-// CategoryService is a set of business rules & actions related to the Category.
-type CategoryService struct {
-	repo contracts.CategoriesRepo
+// CategoryService represents a service that provides functionality related to the models.Category.
+type CategoryService interface {
+	CreateOrGetCategory(name string) (*models.Category, error)
+	DeleteCategory(name string) error
+}
+
+// categoryService is a set of business rules & actions related to the Category.
+type categoryService struct {
+	repo repositories.CategoriesRepo
 }
 
 // NewCategoryService function makes new instance of CategoryService.
-func NewCategoryService(repo contracts.CategoriesRepo) *CategoryService {
-	return &CategoryService{
+func NewCategoryService(repo repositories.CategoriesRepo) CategoryService {
+	return &categoryService{
 		repo: repo,
 	}
 }
 
 // CreateOrGetCategory functions creates new models.Category or returns existing.
-func (s *CategoryService) CreateOrGetCategory(name string) (*models.Category, error) {
+func (s *categoryService) CreateOrGetCategory(name string) (*models.Category, error) {
 	cat, err := s.repo.FindByName(name)
 	if err != nil {
 		return nil, err
@@ -50,7 +56,7 @@ func (s *CategoryService) CreateOrGetCategory(name string) (*models.Category, er
 }
 
 // DeleteCategory function deletes models.Category.
-func (s *CategoryService) DeleteCategory(name string) error {
+func (s *categoryService) DeleteCategory(name string) error {
 	cat, err := s.repo.FindByName(name)
 	if err != nil {
 		return err
