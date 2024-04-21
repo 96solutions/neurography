@@ -9,6 +9,6 @@ import "github.com/96solutions/neurography/knowledgebase/commands/domain/models"
 // for services to work with models.Category and storage.
 type CategoriesRepo interface {
 	FindByName(name string) (*models.Category, error)
-	Create(category *models.Category) (int, error)
+	Create(category *models.Category) (int64, error)
 	Delete(category *models.Category) error
 }

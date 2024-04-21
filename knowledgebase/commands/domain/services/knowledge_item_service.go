@@ -30,15 +30,15 @@ type KnowledgeItemService interface {
 	) (*models.KnowledgeItem, error)
 
 	UpdateItem(
-		item *models.KnowledgeItem,
+		itemID int64,
 		title, anchor, data string,
 		tags []string,
 		categories []*models.Category,
 	) (*models.KnowledgeItem, error)
 
-	DeleteItem(item *models.KnowledgeItem) error
+	DeleteItem(itemID int64) error
 
-	SetLatestMark(item *models.KnowledgeItem, mark int) error
+	SetLatestMark(itemID, mark int64) (*models.KnowledgeItem, error)
 }
 
 // knowledgeItemService is a scope of business rules & actions related to the Knowledge Item.
@@ -85,18 +85,19 @@ func (s *knowledgeItemService) NewItem(
 
 // UpdateItem function updates existing models.KnowledgeItem instance.
 func (s *knowledgeItemService) UpdateItem(
-	item *models.KnowledgeItem,
+	itemID int64,
 	title, anchor, data string,
 	tags []string,
 	categories []*models.Category,
 ) (*models.KnowledgeItem, error) {
-	err := s.validate(title, anchor, data, tags, categories)
+	item, err := s.repo.FindByID(itemID)
 	if err != nil {
-		return nil, err //TODO:
+		return nil, err
 	}
 
-	if item.ID == 0 {
-		return nil, errors.New("provided Knowledge Item doesn't exist")
+	err = s.validate(title, anchor, data, tags, categories)
+	if err != nil {
+		return nil, err //TODO:
 	}
 
 	item.Title = title
@@ -108,7 +109,7 @@ func (s *knowledgeItemService) UpdateItem(
 	updatedAt := time.Now()
 	item.UpdatedAt = &updatedAt
 
-	err = s.repo.Update(item)
+	err = s.repo.Save(item)
 	if err != nil {
 		return nil, err
 	}
@@ -117,9 +118,10 @@ func (s *knowledgeItemService) UpdateItem(
 }
 
 // DeleteItem function deletes existing models.KnowledgeItem.
-func (s *knowledgeItemService) DeleteItem(item *models.KnowledgeItem) error {
-	if item.ID == 0 {
-		return errors.New("provided Knowledge Item doesn't exist")
+func (s *knowledgeItemService) DeleteItem(itemID int64) error {
+	item, err := s.repo.FindByID(itemID)
+	if err != nil {
+		return err
 	}
 
 	return s.repo.Delete(item)
@@ -162,7 +164,7 @@ func (s *knowledgeItemService) validate(
 	return nil
 }
 
-func (s *knowledgeItemService) validateMark(mark int) error {
+func (s *knowledgeItemService) validateMark(mark int64) error {
 	if mark < minMark {
 		return fmt.Errorf("mark cannot be less than %d", minMark)
 	}
@@ -174,13 +176,14 @@ func (s *knowledgeItemService) validateMark(mark int) error {
 }
 
 // SetLatestMark sets last testing result to the knowledge item and updates score.
-func (s *knowledgeItemService) SetLatestMark(item *models.KnowledgeItem, mark int) error {
-	if item.ID == 0 {
-		return errors.New("provided Knowledge Item doesn't exist")
+func (s *knowledgeItemService) SetLatestMark(itemID, mark int64) (*models.KnowledgeItem, error) {
+	item, err := s.repo.FindByID(itemID)
+	if err != nil {
+		return nil, err
 	}
 
-	if err := s.validateMark(mark); err != nil {
-		return err
+	if err = s.validateMark(mark); err != nil {
+		return nil, err
 	}
 
 	lastCheckAt := time.Now()
@@ -211,5 +214,10 @@ func (s *knowledgeItemService) SetLatestMark(item *models.KnowledgeItem, mark in
 
 	item.LastMark = mark
 
-	return s.repo.Update(item)
+	err = s.repo.Save(item)
+	if err != nil {
+		return nil, err
+	}
+
+	return item, nil
 }

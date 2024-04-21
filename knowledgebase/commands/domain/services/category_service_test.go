@@ -44,10 +44,10 @@ func TestCategoryService_CreateOrGetCategory_Existing(t *testing.T) {
 	s := services.NewCategoryService(repo)
 
 	expectedCategoryName := "expectedCategoryName"
-	expectedCategoryID := 15
+	var expectedCategoryID int64 = 15
 
 	repo.EXPECT().FindByName(expectedCategoryName).Return(nil, nil)
-	repo.EXPECT().Create(gomock.Any()).DoAndReturn(func(category *models.Category) (int, error) {
+	repo.EXPECT().Create(gomock.Any()).DoAndReturn(func(category *models.Category) (int64, error) {
 		if category.Name != expectedCategoryName {
 			t.Errorf("Category name: expected %s, got %s", expectedCategoryName, category.Name)
 		}
@@ -118,10 +118,10 @@ func TestCategoryService_CreateOrGetCategory_RepoCreateError(t *testing.T) {
 
 	expectedError := errors.New("expected error")
 	expectedCategoryName := "expectedCategoryName"
-	expectedCategoryID := 15
+	var expectedCategoryID int64 = 15
 
 	repo.EXPECT().FindByName(expectedCategoryName).Return(nil, nil)
-	repo.EXPECT().Create(gomock.Any()).DoAndReturn(func(category *models.Category) (int, error) {
+	repo.EXPECT().Create(gomock.Any()).DoAndReturn(func(category *models.Category) (int64, error) {
 		if category.Name != expectedCategoryName {
 			t.Errorf("Category name: expected %s, got %s", expectedCategoryName, category.Name)
 		}

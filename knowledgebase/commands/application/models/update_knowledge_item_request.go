@@ -1,8 +1,9 @@
 // Package models contains representations of requests and events.
 package models
 
-// AddKnowledgeItemRequest represents request to create new models.KnowledgeItem.
-type AddKnowledgeItemRequest struct {
+// UpdateKnowledgeItemRequest represents request to update models.KnowledgeItem.
+type UpdateKnowledgeItemRequest struct {
+	ID         int64    `json:"id"`
 	Title      string   `json:"title"`
 	Anchor     string   `json:"anchor"`
 	Data       string   `json:"data"`

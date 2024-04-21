@@ -7,25 +7,25 @@ import (
 	"github.com/96solutions/neurography/knowledgebase/commands/domain/services"
 )
 
-// AddKnowledgeItem type represents usecase that has sequence of actions to create new models.KnowledgeItem.
-type AddKnowledgeItem struct {
+// UpdateKnowledgeItem type represents usecase that has sequence of actions to update new models.KnowledgeItem.
+type UpdateKnowledgeItem struct {
 	categoryService      services.CategoryService
 	knowledgeItemService services.KnowledgeItemService
 }
 
-// NewAddKnowledgeItem function builds new instance of AddKnowledgeItem usecase.
-func NewAddKnowledgeItem(
+// NewUpdateKnowledgeItem function builds new instance of UpdateKnowledgeItem usecase.
+func NewUpdateKnowledgeItem(
 	categoryService services.CategoryService,
 	knowledgeItemService services.KnowledgeItemService,
-) *AddKnowledgeItem {
-	return &AddKnowledgeItem{
+) *UpdateKnowledgeItem {
+	return &UpdateKnowledgeItem{
 		categoryService:      categoryService,
 		knowledgeItemService: knowledgeItemService,
 	}
 }
 
 // Handle function performs usecase actions.
-func (uc *AddKnowledgeItem) Handle(request *models.AddKnowledgeItemRequest) (*domain.KnowledgeItem, error) {
+func (uc *UpdateKnowledgeItem) Handle(request *models.UpdateKnowledgeItemRequest) (*domain.KnowledgeItem, error) {
 	var categories []*domain.Category
 	for _, categoryName := range request.Categories {
 		cat, err := uc.categoryService.CreateOrGetCategory(categoryName)
@@ -36,7 +36,9 @@ func (uc *AddKnowledgeItem) Handle(request *models.AddKnowledgeItemRequest) (*do
 		categories = append(categories, cat)
 	}
 
-	item, err := uc.knowledgeItemService.NewItem(request.Title, request.Anchor, request.Data, request.Tags, categories)
+	item, err := uc.knowledgeItemService.UpdateItem(
+		request.ID, request.Title, request.Anchor,
+		request.Data, request.Tags, categories)
 	if err != nil {
 		return nil, err
 	}

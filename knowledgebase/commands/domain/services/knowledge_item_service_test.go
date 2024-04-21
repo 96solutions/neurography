@@ -17,7 +17,7 @@ func TestKnowledgeItemService_NewItem_Success(t *testing.T) {
 
 	repo := mock.NewMockKnowledgeItemsRepo(ctrl)
 
-	expectedItemID := 11
+	var expectedItemID int64 = 11
 	expectedTitle := "expectedTitle"
 	expectedAnchor := "expectedAnchor"
 	expectedData := "expectedData and something else"
@@ -37,7 +37,7 @@ func TestKnowledgeItemService_NewItem_Success(t *testing.T) {
 		},
 	}
 
-	repo.EXPECT().Create(gomock.Any()).DoAndReturn(func(item *models.KnowledgeItem) (int, error) {
+	repo.EXPECT().Create(gomock.Any()).DoAndReturn(func(item *models.KnowledgeItem) (int64, error) {
 		if item.Title != expectedTitle {
 			return 0, errors.New("expected title to be: " + expectedTitle)
 		}
@@ -101,7 +101,7 @@ func TestKnowledgeItemService_NewItem_RepoCreateError(t *testing.T) {
 
 	repo := mock.NewMockKnowledgeItemsRepo(ctrl)
 
-	expectedItemID := 11
+	var expectedItemID int64 = 11
 	expectedTitle := "expectedTitle"
 	expectedAnchor := "expectedAnchor"
 	expectedData := "expectedData and something else"
@@ -122,7 +122,7 @@ func TestKnowledgeItemService_NewItem_RepoCreateError(t *testing.T) {
 	}
 	expectedError := errors.New("expected error")
 
-	repo.EXPECT().Create(gomock.Any()).DoAndReturn(func(item *models.KnowledgeItem) (int, error) {
+	repo.EXPECT().Create(gomock.Any()).DoAndReturn(func(item *models.KnowledgeItem) (int64, error) {
 		if item.Title != expectedTitle {
 			return 0, errors.New("expected title to be: " + expectedTitle)
 		}
@@ -261,8 +261,9 @@ func TestKnowledgeItemService_UpdateItem_Success(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
+	var expectedItemID int64 = 5
 	item := &models.KnowledgeItem{
-		ID:     5,
+		ID:     expectedItemID,
 		Title:  "Test Item",
 		Anchor: "Test Anchor",
 		Data:   "Test Data and Something more",
@@ -280,10 +281,11 @@ func TestKnowledgeItemService_UpdateItem_Success(t *testing.T) {
 	tags := []string{"tag1", "tag2", "tag3"}
 
 	repo := mock.NewMockKnowledgeItemsRepo(ctrl)
-	repo.EXPECT().Update(item).Return(nil)
+	repo.EXPECT().FindByID(expectedItemID).Return(item, nil)
+	repo.EXPECT().Save(item).Return(nil)
 
 	s := services.NewKnowledgeItemService(repo)
-	result, err := s.UpdateItem(item, expectedTitle, expectedAnchor, expectedData, tags, categories)
+	result, err := s.UpdateItem(expectedItemID, expectedTitle, expectedAnchor, expectedData, tags, categories)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -327,8 +329,9 @@ func TestKnowledgeItemService_UpdateItem_RepoError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
+	var expectedItemID int64 = 5
 	item := &models.KnowledgeItem{
-		ID:     5,
+		ID:     expectedItemID,
 		Title:  "Test Item",
 		Anchor: "Test Anchor",
 		Data:   "Test Data and Something more",
@@ -347,10 +350,11 @@ func TestKnowledgeItemService_UpdateItem_RepoError(t *testing.T) {
 	expectedError := errors.New("expected error")
 
 	repo := mock.NewMockKnowledgeItemsRepo(ctrl)
-	repo.EXPECT().Update(item).Return(expectedError)
+	repo.EXPECT().FindByID(expectedItemID).Return(item, nil)
+	repo.EXPECT().Save(item).Return(expectedError)
 
 	s := services.NewKnowledgeItemService(repo)
-	_, err := s.UpdateItem(item, expectedTitle, expectedAnchor, expectedData, tags, categories)
+	_, err := s.UpdateItem(expectedItemID, expectedTitle, expectedAnchor, expectedData, tags, categories)
 	if err == nil {
 		t.Fatal("expected error")
 	}
@@ -359,11 +363,13 @@ func TestKnowledgeItemService_UpdateItem_RepoError(t *testing.T) {
 	}
 }
 
-func TestKnowledgeItemService_UpdateItem_ItemNotExists(t *testing.T) {
+func TestKnowledgeItemService_UpdateItem_RepoNotFoundError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
+	var expectedItemID int64 = 5
 	item := &models.KnowledgeItem{
+		ID:     expectedItemID,
 		Title:  "Test Item",
 		Anchor: "Test Anchor",
 		Data:   "Test Data and Something more",
@@ -379,12 +385,13 @@ func TestKnowledgeItemService_UpdateItem_ItemNotExists(t *testing.T) {
 		},
 	}
 	tags := []string{"tag1", "tag2", "tag3"}
-	expectedError := errors.New("provided Knowledge Item doesn't exist")
+	expectedError := errors.New("expected not found error")
 
 	repo := mock.NewMockKnowledgeItemsRepo(ctrl)
+	repo.EXPECT().FindByID(expectedItemID).Return(item, expectedError)
 
 	s := services.NewKnowledgeItemService(repo)
-	_, err := s.UpdateItem(item, expectedTitle, expectedAnchor, expectedData, tags, categories)
+	_, err := s.UpdateItem(expectedItemID, expectedTitle, expectedAnchor, expectedData, tags, categories)
 	if err == nil {
 		t.Fatal("expected error")
 	}
@@ -409,7 +416,7 @@ func TestKnowledgeItemService_UpdateItem_ValidationError(t *testing.T) {
 	testCases := []struct {
 		name               string
 		item               *models.KnowledgeItem
-		expectedItemID     int
+		expectedItemID     int64
 		expectedTitle      string
 		expectedAnchor     string
 		expectedData       string
@@ -490,9 +497,10 @@ func TestKnowledgeItemService_UpdateItem_ValidationError(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			repo.EXPECT().FindByID(tc.expectedItemID).Return(tc.item, nil)
 			s := services.NewKnowledgeItemService(repo)
 			_, err := s.UpdateItem(
-				tc.item, tc.expectedTitle, tc.expectedAnchor,
+				tc.expectedItemID, tc.expectedTitle, tc.expectedAnchor,
 				tc.expectedData, tc.expectedTags, tc.expectedCategories)
 			if err.Error() != tc.expectedError.Error() {
 				t.Fatalf("expected error: %s, got: %s", tc.expectedError.Error(), err.Error())
@@ -505,8 +513,9 @@ func TestKnowledgeItemService_DeleteItem_Success(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
+	var expectedItemID int64 = 5
 	item := &models.KnowledgeItem{
-		ID:     1,
+		ID:     expectedItemID,
 		Title:  "Test Item",
 		Anchor: "Test Anchor",
 		Data:   "Test Data and Something more",
@@ -514,10 +523,11 @@ func TestKnowledgeItemService_DeleteItem_Success(t *testing.T) {
 	}
 
 	repo := mock.NewMockKnowledgeItemsRepo(ctrl)
+	repo.EXPECT().FindByID(expectedItemID).Return(item, nil)
 	repo.EXPECT().Delete(item).Return(nil)
 
 	s := services.NewKnowledgeItemService(repo)
-	err := s.DeleteItem(item)
+	err := s.DeleteItem(expectedItemID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -527,19 +537,14 @@ func TestKnowledgeItemService_DeleteItem_ItemNotExists(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	item := &models.KnowledgeItem{
-		ID:     0,
-		Title:  "Test Item",
-		Anchor: "Test Anchor",
-		Data:   "Test Data and Something more",
-		Tags:   []string{"tag1", "tag2"},
-	}
-	expectedError := errors.New("provided Knowledge Item doesn't exist")
+	var expectedItemID int64 = 5
+	expectedError := errors.New("not found error")
 
 	repo := mock.NewMockKnowledgeItemsRepo(ctrl)
+	repo.EXPECT().FindByID(expectedItemID).Return(nil, expectedError)
 
 	s := services.NewKnowledgeItemService(repo)
-	err := s.DeleteItem(item)
+	err := s.DeleteItem(expectedItemID)
 	if err == nil {
 		t.Fatal(err)
 	}
@@ -552,8 +557,9 @@ func TestKnowledgeItemService_DeleteItem_RepoError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
+	var expectedItemID int64 = 5
 	item := &models.KnowledgeItem{
-		ID:     1,
+		ID:     expectedItemID,
 		Title:  "Test Item",
 		Anchor: "Test Anchor",
 		Data:   "Test Data and Something more",
@@ -562,10 +568,11 @@ func TestKnowledgeItemService_DeleteItem_RepoError(t *testing.T) {
 	expectedError := errors.New("expected error")
 
 	repo := mock.NewMockKnowledgeItemsRepo(ctrl)
+	repo.EXPECT().FindByID(expectedItemID).Return(item, nil)
 	repo.EXPECT().Delete(item).Return(expectedError)
 
 	s := services.NewKnowledgeItemService(repo)
-	err := s.DeleteItem(item)
+	err := s.DeleteItem(expectedItemID)
 	if err == nil {
 		t.Fatal(err)
 	}
@@ -592,25 +599,14 @@ func TestKnowledgeItemService_SetLatestMark(t *testing.T) {
 	testCases := []struct {
 		name          string
 		item          *models.KnowledgeItem
-		itemID        int
-		mark          int
-		exScore       int
-		exMark        int
-		expectedMark  int
-		expectedScore int
+		itemID        int64
+		mark          int64
+		exScore       int64
+		exMark        int64
+		expectedMark  int64
+		expectedScore int64
 		expectedError error
 	}{
-		{
-			name:          "item doesn't exist",
-			item:          item,
-			itemID:        0,
-			mark:          1,
-			exScore:       0,
-			exMark:        0,
-			expectedMark:  0,
-			expectedScore: 0,
-			expectedError: errors.New("provided Knowledge Item doesn't exist"),
-		},
 		{
 			name:          "mark less than min 0",
 			item:          item,
@@ -718,11 +714,12 @@ func TestKnowledgeItemService_SetLatestMark(t *testing.T) {
 			tc.item.Score = tc.exScore
 			tc.item.LastMark = tc.exMark
 
+			repo.EXPECT().FindByID(tc.itemID).Return(tc.item, nil)
 			if tc.expectedError == nil {
-				repo.EXPECT().Update(tc.item).Return(nil)
+				repo.EXPECT().Save(tc.item).Return(nil)
 			}
 
-			err := s.SetLatestMark(tc.item, tc.mark)
+			resultItem, err := s.SetLatestMark(tc.itemID, tc.mark)
 			// error expected
 			if tc.expectedError != nil {
 				if err.Error() != tc.expectedError.Error() {
@@ -735,12 +732,77 @@ func TestKnowledgeItemService_SetLatestMark(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			if tc.expectedScore != tc.item.Score {
-				t.Fatalf("expected score: %d, got: %d", tc.expectedScore, tc.item.Score)
+			if tc.expectedScore != resultItem.Score {
+				t.Fatalf("expected score: %d, got: %d", tc.expectedScore, resultItem.Score)
 			}
-			if tc.expectedMark != tc.item.LastMark {
-				t.Fatalf("expected mark: %d, got: %d", tc.expectedMark, tc.item.LastMark)
+			if tc.expectedMark != resultItem.LastMark {
+				t.Fatalf("expected mark: %d, got: %d", tc.expectedMark, resultItem.LastMark)
 			}
 		})
+	}
+}
+
+func TestKnowledgeItemService_SetLatestMark_NotFoundError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	var expectedItemID int64 = 51
+	item := &models.KnowledgeItem{
+		ID:     expectedItemID,
+		Title:  "Test Item",
+		Anchor: "Test Anchor",
+		Data:   "Test Data and Something more",
+		Tags:   []string{"tag1", "tag2"},
+	}
+	expectedError := errors.New("item not found")
+
+	repo := mock.NewMockKnowledgeItemsRepo(ctrl)
+	repo.EXPECT().FindByID(expectedItemID).Return(item, expectedError)
+
+	s := services.NewKnowledgeItemService(repo)
+	_, err := s.SetLatestMark(expectedItemID, 5)
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	if err.Error() != expectedError.Error() {
+		t.Fatalf("expected error: %s, got: %s", expectedError.Error(), err.Error())
+	}
+}
+
+func TestKnowledgeItemService_SetLatestMark_SaveError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	var expectedItemID int64 = 51
+	var expectedMark int64 = 5
+	item := &models.KnowledgeItem{
+		ID:     expectedItemID,
+		Title:  "Test Item",
+		Anchor: "Test Anchor",
+		Data:   "Test Data and Something more",
+		Tags:   []string{"tag1", "tag2"},
+	}
+	expectedError := errors.New("item not saved")
+
+	repo := mock.NewMockKnowledgeItemsRepo(ctrl)
+	repo.EXPECT().FindByID(expectedItemID).Return(item, nil)
+	repo.EXPECT().Save(item).DoAndReturn(func(i *models.KnowledgeItem) error {
+		if i.ID != expectedItemID {
+			t.Fatalf("expected ID: %d, got: %d", expectedItemID, i.ID)
+		}
+		if i.LastMark != expectedMark {
+			t.Fatalf("expected LastMark: %d, got: %d", expectedMark, i.LastMark)
+		}
+
+		return expectedError
+	})
+
+	s := services.NewKnowledgeItemService(repo)
+	_, err := s.SetLatestMark(expectedItemID, expectedMark)
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	if err.Error() != expectedError.Error() {
+		t.Fatalf("expected error: %s, got: %s", expectedError.Error(), err.Error())
 	}
 }

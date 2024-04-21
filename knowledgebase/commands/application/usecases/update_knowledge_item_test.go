@@ -11,11 +11,13 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-func TestAddKnowledgeItem_Do_Success(t *testing.T) {
+func TestUpdateKnowledgeItem_Do_Success(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	req := &models.AddKnowledgeItemRequest{
+	expectedItemID := int64(5)
+	req := &models.UpdateKnowledgeItemRequest{
+		ID:         expectedItemID,
 		Title:      "expectedTitle",
 		Anchor:     "expectedAnchor",
 		Data:       "expectedData and more",
@@ -33,8 +35,9 @@ func TestAddKnowledgeItem_Do_Success(t *testing.T) {
 			Name: req.Categories[1],
 		},
 	}
+
 	expectedItem := &domain.KnowledgeItem{
-		ID:         5,
+		ID:         expectedItemID,
 		Title:      req.Title,
 		Anchor:     req.Anchor,
 		Data:       req.Data,
@@ -51,9 +54,12 @@ func TestAddKnowledgeItem_Do_Success(t *testing.T) {
 	})
 
 	itemService := mock.NewMockKnowledgeItemService(ctrl)
-	itemService.EXPECT().NewItem(req.Title, req.Anchor, req.Data, req.Tags, expectedCategories).Return(expectedItem, nil)
+	itemService.EXPECT().UpdateItem(
+		expectedItemID, req.Title, req.Anchor,
+		req.Data, req.Tags, expectedCategories).
+		Return(expectedItem, nil)
 
-	uc := usecases.NewAddKnowledgeItem(catService, itemService)
+	uc := usecases.NewUpdateKnowledgeItem(catService, itemService)
 
 	item, err := uc.Handle(req)
 	if err != nil {
@@ -93,11 +99,13 @@ func TestAddKnowledgeItem_Do_Success(t *testing.T) {
 	}
 }
 
-func TestAddKnowledgeItem_Do_CategoryServiceError(t *testing.T) {
+func TestUpdateKnowledgeItem_Do_CategoryServiceError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	req := &models.AddKnowledgeItemRequest{
+	expectedItemID := int64(5)
+	req := &models.UpdateKnowledgeItemRequest{
+		ID:         expectedItemID,
 		Title:      "expectedTitle",
 		Anchor:     "expectedAnchor",
 		Data:       "expectedData and more",
@@ -113,18 +121,20 @@ func TestAddKnowledgeItem_Do_CategoryServiceError(t *testing.T) {
 
 	itemService := mock.NewMockKnowledgeItemService(ctrl)
 
-	uc := usecases.NewAddKnowledgeItem(catService, itemService)
+	uc := usecases.NewUpdateKnowledgeItem(catService, itemService)
 	_, err := uc.Handle(req)
 	if !errors.Is(err, expectedError) {
 		t.Errorf("expected error %s, got %s", expectedError, err)
 	}
 }
 
-func TestAddKnowledgeItem_Do_KnowledgeItemServiceError(t *testing.T) {
+func TestUpdateKnowledgeItem_Do_KnowledgeItemServiceError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	req := &models.AddKnowledgeItemRequest{
+	expectedItemID := int64(5)
+	req := &models.UpdateKnowledgeItemRequest{
+		ID:         expectedItemID,
 		Title:      "expectedTitle",
 		Anchor:     "expectedAnchor",
 		Data:       "expectedData and more",
@@ -144,10 +154,10 @@ func TestAddKnowledgeItem_Do_KnowledgeItemServiceError(t *testing.T) {
 
 	itemService := mock.NewMockKnowledgeItemService(ctrl)
 	itemService.EXPECT().
-		NewItem(req.Title, req.Anchor, req.Data, req.Tags, []*domain.Category{expectedCategory}).
+		UpdateItem(expectedItemID, req.Title, req.Anchor, req.Data, req.Tags, []*domain.Category{expectedCategory}).
 		Return(nil, expectedError)
 
-	uc := usecases.NewAddKnowledgeItem(catService, itemService)
+	uc := usecases.NewUpdateKnowledgeItem(catService, itemService)
 	_, err := uc.Handle(req)
 	if !errors.Is(err, expectedError) {
 		t.Errorf("expected error %s, got %s", expectedError, err)
