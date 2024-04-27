@@ -2,6 +2,8 @@
 package usecases
 
 import (
+	"context"
+
 	"github.com/96solutions/neurography/knowledgebase/commands/application/models"
 	domain "github.com/96solutions/neurography/knowledgebase/commands/domain/models"
 	"github.com/96solutions/neurography/knowledgebase/commands/domain/services"
@@ -11,35 +13,40 @@ import (
 type AddKnowledgeItem struct {
 	categoryService      services.CategoryService
 	knowledgeItemService services.KnowledgeItemService
+	presenter            models.AddKnowledgeItemPresenter
 }
 
 // NewAddKnowledgeItem function builds new instance of AddKnowledgeItem usecase.
 func NewAddKnowledgeItem(
 	categoryService services.CategoryService,
 	knowledgeItemService services.KnowledgeItemService,
+	presenter models.AddKnowledgeItemPresenter,
 ) *AddKnowledgeItem {
 	return &AddKnowledgeItem{
 		categoryService:      categoryService,
 		knowledgeItemService: knowledgeItemService,
+		presenter:            presenter,
 	}
 }
 
 // Handle function performs usecase actions.
-func (uc *AddKnowledgeItem) Handle(request *models.AddKnowledgeItemRequest) (*domain.KnowledgeItem, error) {
+func (uc *AddKnowledgeItem) Handle(_ context.Context, cmd *models.AddKnowledgeItemCommand) error {
 	var categories []*domain.Category
-	for _, categoryName := range request.Categories {
+	for _, categoryName := range cmd.Categories {
 		cat, err := uc.categoryService.CreateOrGetCategory(categoryName)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		categories = append(categories, cat)
 	}
 
-	item, err := uc.knowledgeItemService.NewItem(request.Title, request.Anchor, request.Data, request.Tags, categories)
+	item, err := uc.knowledgeItemService.NewItem(cmd.Title, cmd.Anchor, cmd.Data, cmd.Tags, categories)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return item, nil
+	uc.presenter.SetResult(item)
+
+	return nil
 }

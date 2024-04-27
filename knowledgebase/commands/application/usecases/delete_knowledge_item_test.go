@@ -1,6 +1,7 @@
 package usecases_test
 
 import (
+	"context"
 	"errors"
 	"testing"
 
@@ -19,10 +20,16 @@ func TestDeleteKnowledgeItem_Do(t *testing.T) {
 	service := mock.NewMockKnowledgeItemService(ctrl)
 	service.EXPECT().DeleteItem(expectedItemID).Return(nil)
 
-	req := &models.DeleteKnowledgeItemRequest{ID: expectedItemID}
+	req := &models.DeleteKnowledgeItemCommand{ID: expectedItemID}
 
-	uc := usecases.NewDeleteKnowledgeItem(service)
-	err := uc.Handle(req)
+	presenter := mock.NewMockDeleteKnowledgeItemPresenter(ctrl)
+	presenter.EXPECT().SetResult(true)
+
+	uc := usecases.NewDeleteKnowledgeItem(service, presenter)
+
+	ctx := context.Background()
+
+	err := uc.Handle(ctx, req)
 	if err != nil {
 		t.Fatalf("Unexpected error: %s", err.Error())
 	}
@@ -38,10 +45,15 @@ func TestDeleteKnowledgeItem_Do_Error(t *testing.T) {
 	service := mock.NewMockKnowledgeItemService(ctrl)
 	service.EXPECT().DeleteItem(expectedItemID).Return(expectedError)
 
-	req := &models.DeleteKnowledgeItemRequest{ID: expectedItemID}
+	req := &models.DeleteKnowledgeItemCommand{ID: expectedItemID}
 
-	uc := usecases.NewDeleteKnowledgeItem(service)
-	err := uc.Handle(req)
+	presenter := mock.NewMockDeleteKnowledgeItemPresenter(ctrl)
+
+	uc := usecases.NewDeleteKnowledgeItem(service, presenter)
+
+	ctx := context.Background()
+
+	err := uc.Handle(ctx, req)
 	if err == nil {
 		t.Fatalf("Expected error, got none")
 	}
